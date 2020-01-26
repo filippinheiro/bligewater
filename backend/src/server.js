@@ -1,10 +1,15 @@
 const express = require('express')
-const routes = require('./routes')
+const dotenv = require('dotenv')
+const routes = require('./routes.js')
+
+dotenv.config()
 
 const app = express()
+const PORT = process.env.PORT
 
 app.use(express.json())
 
+
 app.use('/', routes)
 
-app.listen(3333, () => console.log('listening on PORT 3333'))
+app.listen(PORT, () => console.log(`listening on PORT ${PORT}`))
