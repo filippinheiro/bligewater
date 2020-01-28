@@ -2,15 +2,36 @@ import React, { useState  } from 'react'
 import { connect } from 'react-redux'
 import './styles.css'
 import quantActions from '../../redux/actions/quantAction'
+import api from '../../services/api'
 
 function Item({ item, cartQuantity, dispatch, amount, recipients}) {
 
   const [quantity, setQuantity] = useState(0)
+
+  async function handleAddItem(item, additionalValue) {
+      const response = await api.post('/items', {
+          ...item,
+          quantity: quantity + additionalValue
+      })
+      console.log(`adding ${response.data}`)
+  }
+
+  async function handleRemoveItem({title}) {
+      const response = await api.delete(`/items/${title}`)
+      console.log(`removing ${JSON.stringify(response.data)}`)
+  }
   
   function setCartQuantity(additionalValue) {
     setQuantity(quantity + additionalValue)
     dispatch(quantActions.setQuant(cartQuantity + additionalValue)) 
     dispatch(quantActions.setAmount(amount + (additionalValue) * item.unit_price))
+    if(additionalValue < 0 && quantity === 1) {
+        handleRemoveItem(item)
+        console.log(quantity, JSON.stringify(item))
+        return
+    }
+    handleAddItem(item, additionalValue)
+    console.log(quantity, JSON.stringify(item))
   }
 
 

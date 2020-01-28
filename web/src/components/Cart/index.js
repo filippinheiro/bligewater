@@ -13,24 +13,32 @@ function Cart({ quantity, amount, recipients }) {
    }
 
    async function handleSubmit(event) {
+
        event.preventDefault()
+       const response = await api.get('/items')
+       const items = response.data.map(item => ({
+           id: item.id,
+           title: item.title,
+           unit_price: item.unit_price,
+           quantity: item.quantity,
+           tangible: item.tangible
+       }))
        const checkout = new window.PagarMeCheckout.Checkout({
         encryption_key: config.ENCRIPTION_KEY,
         success: async function(data) {
 
-            const response = await api.post('/capture', {
-                id: data.token,
-                recipients,
-                amount
-            })
-
-            console.log(data, response.data);
+        await api.post('/capture', {
+            id: data.token,
+            items: response.data,
+            amount,
+        })
+        await api.delete('/items')
         },
         error: function(err) {
         	console.log(err);
         },
-        close: function() {
-        	console.log('The modal has been closed.');
+        close: async function() {
+            console.log('The modal has been closed.');
         }
       });
 
@@ -39,6 +47,7 @@ function Cart({ quantity, amount, recipients }) {
       createToken: 'true',
       paymentMethods: 'credit_card,boleto',
       customerData: 'true',
+      items
    })
   }
 
