@@ -1,5 +1,8 @@
 const express = require('express')
 const dotenv = require('dotenv')
+const cors = require('cors')
+const mongoose = require('mongoose')
+const Item = require('./models/Item')
 const routes = require('./routes.js')
 
 dotenv.config()
@@ -7,9 +10,15 @@ dotenv.config()
 const app = express()
 const PORT = process.env.PORT
 
+app.use(cors())
 app.use(express.json())
-
 
 app.use('/', routes)
 
-app.listen(PORT, () => console.log(`listening on PORT ${PORT}`))
+app.listen(PORT, () => {
+   mongoose.connect(process.env.CONNECTION_STRING, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true
+   })
+   console.log(`Listening on port ${PORT}`)
+})

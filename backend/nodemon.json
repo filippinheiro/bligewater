@@ -1,6 +1,7 @@
 {
    "env":{
       "PORT" : "3333",
-      "API_KEY" : "ak_test_E93wYOL6ac8Crcuk87Q9aB079PBq0i"
+      "API_KEY" : "ak_test_E93wYOL6ac8Crcuk87Q9aB079PBq0i",
+      "CONNECTION_STRING": "mongodb+srv://filippinheiro:teste_teste@cluster0-y2z6n.gcp.mongodb.net/itens?retryWrites=true&w=majority"
    }
 }
