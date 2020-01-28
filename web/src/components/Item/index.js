@@ -1,16 +1,25 @@
-import React, { useState } from 'react'
+import React, { useState  } from 'react'
 import { connect } from 'react-redux'
-import quantActions from '../../redux/actions/quantAction'
 import './styles.css'
+import quantActions from '../../redux/actions/quantAction'
 
-function Item({ item, cartQuantity, dispatch, amount }) {
+function Item({ item, cartQuantity, dispatch, amount, recipients}) {
 
   const [quantity, setQuantity] = useState(0)
-
+  
   function setCartQuantity(additionalValue) {
     setQuantity(quantity + additionalValue)
-    dispatch(quantActions.setQuant(cartQuantity + additionalValue))
-    dispatch(quantActions.setAmount(amount + ((item.price) * (additionalValue))))
+    dispatch(quantActions.setQuant(cartQuantity + additionalValue)) 
+    dispatch(quantActions.setAmount(amount + (additionalValue) * item.unit_price))
+  }
+
+
+  function addRecipient() {
+      dispatch(quantActions.addRecipient(item.recipient_id, recipients))
+  }
+
+  function removeRecipient() {
+      dispatch(quantActions.removeRecipient(item.recipient_id, recipients))
   }
 
   function format(value) {
@@ -20,12 +29,12 @@ function Item({ item, cartQuantity, dispatch, amount }) {
   }
 
   return (
-    <li key={item._id} className="item">
+    <li key={item.id} className="item">
       <header>
-        <img src={item.avatar_url} alt={item.name} />
+        <img src={item.avatar_url} alt={item.title} />
         <div className="item-info">
           <strong>
-            {item.name}
+            {item.title}
           </strong>
         </div>
       </header>
@@ -35,6 +44,7 @@ function Item({ item, cartQuantity, dispatch, amount }) {
           disabled={quantity === 3 || cartQuantity >= 3}
           onClick={() => {
             setCartQuantity(1)
+            addRecipient()
           }
           }>+</button>
         <p id="quantidade">{quantity}</p>
@@ -42,13 +52,15 @@ function Item({ item, cartQuantity, dispatch, amount }) {
           disabled={quantity === 0}
           onClick={() => {
             setCartQuantity(-1)
+            if(quantity)
+            removeRecipient()
           }
           }>-</button>
-        <p id="price">{format(item.price)}</p>
+        <p id="price">{format(item.unit_price)}</p>
       </div>
     </li>
   )
 }
 
 
-export default connect(store => ({ cartQuantity: store.quantity, amount: store.amount }))(Item);
+export default connect(store => ({ cartQuantity: store.quantity, amount: store.amount, recipients: store.recipients}))(Item);
