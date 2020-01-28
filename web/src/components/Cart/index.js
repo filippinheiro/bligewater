@@ -1,9 +1,10 @@
 import React from 'react'
+import {connect} from 'react-redux'
 import api from '../../services/api'
 import './styles.css'
 import config from '../../config/private.json'
 
-function Cart({ quantity, amount }) {
+function Cart({ quantity, amount, recipients }) {
 
    function format(value) {
       const price = value / 100
@@ -12,82 +13,51 @@ function Cart({ quantity, amount }) {
    }
 
    async function handleSubmit(event) {
+
        event.preventDefault()
+       const response = await api.get('/items')
+       const items = response.data.map(item => ({
+           id: item.id,
+           title: item.title,
+           unit_price: item.unit_price,
+           quantity: item.quantity,
+           tangible: item.tangible
+       }))
        const checkout = new window.PagarMeCheckout.Checkout({
-        encryption_key: config.API_KEY,
-        success: function(data) {
-            api.post('/capture', {
-                id: data.token,
-                recipient_id: 're_ck5v9pxgj09l1xg6fs3e3zsva'
-            })
-            console.log(data);
+        encryption_key: config.ENCRIPTION_KEY,
+        success: async function(data) {
+
+        await api.post('/capture', {
+            id: data.token,
+            items: response.data,
+            amount,
+        })
+        await api.delete('/items')
         },
         error: function(err) {
         	console.log(err);
         },
-        close: function() {
-        	console.log('The modal has been closed.');
+        close: async function() {
+            console.log('The modal has been closed.');
         }
       });
 
     checkout.open({
-    amount,
-    createToken: 'true',
-    paymentMethods: 'credit_card',
-    customerData: false,
-    billing: {
-      name: 'Ciclano de Tal',
-      address: {
-        country: 'br',
-        state: 'SP',
-        city: 'São Paulo',
-        neighborhood: 'Fulanos bairro',
-        street: 'Rua dos fulanos',
-        street_number: '123',
-        zipcode: '05170060'
-      }
-    },
-    shipping: {
-      name: 'Ciclano de Tal',
-      fee: 12345,
-      delivery_date: '2017-12-25',
-      expedited: true,
-      address: {
-        country: 'br',
-        state: 'SP',
-        city: 'São Paulo',
-        neighborhood: 'Fulanos bairro',
-        street: 'Rua dos fulanos',
-        street_number: '123',
-        zipcode: '05170060'
-      }
-    },
-    items: [
-      {
-        id: '1',
-        title: 'Bola de futebol',
-        unit_price: 12000,
-        quantity: 1,
-        tangible: true
-      },
-      {
-        id: 'a123',
-        title: 'Caderno do Goku',
-        unit_price: 3200,
-        quantity: 3,
-        tangible: true
-      }
-    ]
-  })
-   }
+      amount,
+      createToken: 'true',
+      paymentMethods: 'credit_card,boleto',
+      customerData: 'true',
+      items
+   })
+  }
 
    return (
       <form onSubmit={handleSubmit}>
          <label>{quantity} Itens no carrinho</label>
          <label>{format(amount)} - valor total</label>
-         <button type="submit">Finalizar Compra</button>
+         <button type="submit" disabled={amount===0}>Finalizar Compra</button>
       </form>
    )
 }
 
-export default Cart;
+export default connect(store => ({recipients: store.recipients}))(Cart)
